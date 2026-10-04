@@ -98,7 +98,11 @@ svg[aria-label^="Testing"] rect{fill:#134e4a;stroke:#2dd4bf}svg[aria-label^="Tes
  .card,.info,.vz,td,th{background:#fff!important;border-color:#555!important}th{background:#e5e7eb!important}
  svg{background:#fff!important;max-height:none}svg text{fill:#000!important}.n rect,svg[aria-label^="Testing"] rect{fill:#eef4ff!important;stroke:#0e7490!important}
  .tg{background:#ddd!important}.notes{display:block;background:#fff!important}}
-#deck{overflow:hidden}html{overflow-x:hidden}@media print{#deck{overflow:visible}}#s0 .sub{max-width:none;margin-bottom:.5rem}#s0 .arch svg{max-height:56vh}#s0 .fl{columns:2;column-gap:2rem;margin:.3rem 0}#s0 h1{font-size:clamp(1.5rem,3vw,2.4rem)}#ct{color:#e6eefc;font-weight:600}@media(max-width:800px){#s0 .fl{columns:1}#s0 .arch svg{max-height:none}}</style></head>
+#deck{overflow:hidden}html{overflow-x:hidden}@media print{#deck{overflow:visible}}#s0 .sub{max-width:none;margin-bottom:.5rem}#s0 .arch svg{max-height:56vh}#s0 .fl{columns:2;column-gap:2rem;margin:.3rem 0}#s0 h1{font-size:clamp(1.5rem,3vw,2.4rem)}#ct{color:#e6eefc;font-weight:600}@media(max-width:800px){#s0 .fl{columns:1}#s0 .arch svg{max-height:none}}.dn{cursor:pointer}.dn rect{stroke-width:2.5}.dn.i rect{fill:#0b3a5c;stroke:#22d3ee}.dn.p rect{fill:#2a1f63;stroke:#c4b5fd;stroke-dasharray:7 5}.dn.x rect{fill:#4a1620;stroke:#f87171;stroke-dasharray:7 5}
+.dn:hover rect,.dn.sel rect,.dn:focus-visible rect{stroke:#fff;stroke-width:3.5}.zn{fill:rgba(15,26,48,.55);stroke:#4b6bb0;stroke-width:1.5}
+.e.c{stroke:#22d3ee}.bd circle{fill:#0b1220;stroke:#fff;stroke-width:1.5}.bd text{font-size:11px;font-weight:700;text-anchor:middle}.tg.x{background:#fca5a5}#s0 #dd .arch svg{max-height:none}#dd .fl{columns:2;column-gap:2rem}@media(max-width:800px){#dd .fl{columns:1}}
+@media print{.dn rect{fill:#eef4ff!important;stroke:#0e7490!important}.zn{fill:none!important}.bd circle{fill:#fff!important}.e{stroke:#000!important}}
+</style></head>
 <body>
 <header class="bar"><strong class="brand">◆ DATA SENTINEL</strong>
 <div class="ctl"><button id="bOv" aria-label="Open slide overview">Overview</button><button id="bNo" aria-pressed="false" aria-label="Toggle presenter notes">Notes</button><button id="bFs" aria-label="Toggle fullscreen">Fullscreen</button></div></header>
@@ -187,7 +191,7 @@ $('ovG').onclick=e=>{const b=e.target.closest('[data-go]');if(b){go(+b.dataset.g
 function sel(g){document.querySelectorAll('.n').forEach(x=>x.classList.remove('sel'));g.classList.add('sel');const n=N.find(x=>x[0]==g.dataset.id);$('info').innerHTML=`<h3>${n[1]}</h3><b class="tg ${n[7]}">${TG[n[7]]}</b><p>${n[8]}</p>`}
 document.querySelectorAll('.n').forEach(g=>{g.onclick=()=>sel(g);g.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();sel(g)}}});
 let timer;$('play').onclick=()=>{clearInterval(timer);let i=0;const li=document.querySelectorAll('#fl li');const map={1:[1],2:[0,1],3:[],4:[2],5:[3],6:[3]};
-const step=()=>{li.forEach((l,j)=>l.classList.toggle('hl',j==i));document.querySelectorAll('.e').forEach(p=>p.classList.toggle('hl',p.dataset.step.split(',').includes(String(i+1))));if(++i>=li.length){clearInterval(timer);setTimeout(()=>{li.forEach(l=>l.classList.remove('hl'));document.querySelectorAll('.e').forEach(p=>p.classList.remove('hl'))},1500)}};step();timer=setInterval(step,1400)};
+const step=()=>{li.forEach((l,j)=>l.classList.toggle('hl',j==i));document.querySelectorAll('.e[data-step]').forEach(p=>p.classList.toggle('hl',p.dataset.step.split(',').includes(String(i+1))));if(++i>=li.length){clearInterval(timer);setTimeout(()=>{li.forEach(l=>l.classList.remove('hl'));document.querySelectorAll('.e[data-step]').forEach(p=>p.classList.remove('hl'))},1500)}};step();timer=setInterval(step,1400)};
 // tabs
 deck.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const id=b.dataset.tab;document.querySelectorAll(`[data-tab="${id}"]`).forEach(x=>{x.classList.toggle('on',x==b);x.setAttribute('aria-selected',x==b)});document.querySelectorAll(`[data-p="${id}"]`).forEach(p=>p.hidden=p.dataset.i!=b.dataset.i)});
 // calculator
@@ -206,5 +210,47 @@ const cap=()=>{const m=+document.getElementById('ri').value;document.getElementB
 document.getElementById('ri').oninput=cap;cap();
 const L=[['Load & resilience — future',false],['Security tests',true],['Real HTTP end-to-end (60 + 3 checks)',true],['Integration tests',true],['Unit tests',true]];
 add(11,`<div class="vz"><h3>Testing pyramid</h3><svg viewBox="0 0 960 250" role="img" aria-label="Testing pyramid from unit tests at the base to load and resilience tests at the top, which are future work">${L.map((l,i)=>{const w=160+i*150,x=480-w/2;return `<rect x="${x}" y="${10+i*46}" width="${w}" height="40" rx="6" fill="#141f38" stroke="${l[1]?'#22d3ee':'#a78bfa'}" stroke-width="2" ${l[1]?'':'stroke-dasharray="7 5"'}/><text x="480" y="${35+i*46}" text-anchor="middle">${l[0]}${l[1]?'':' (proposed)'}</text>`}).join('')}</svg></div>`);
+})();
+;(function(){
+const TT={i:'Implemented',p:'Proposed',x:'Never stored / blocked'};
+const Z=[['Vendor control plane — source of truth',10,28,524,284,'#c4b5fd'],['Customer experience',600,28,340,84,'#6ee7b7'],['Cloud API',600,134,340,84,'#67e8f9'],['Data Sentinel installations',600,240,340,72,'#fdba74']];
+const D=[
+['idn',22,56,158,62,'Identity & Access','RBAC roles · staff accounts','i','Vendor staff identities and roles (SUPER_ADMIN, LICENSE_MANAGER, SUPPORT_AGENT, VIEWER). Owner: Vendor Portal. Mutating actions are authorized; denials are audited.'],
+['cus',194,56,158,62,'Customers & Orgs','Organization records','i','Customer and organization records. Owner: Vendor Portal (single source of truth). Customer Portal holds no authoritative copy.'],
+['lic',366,56,158,62,'Plans & Licenses','Status · expiry · plan · signature','i','License lifecycle: plan, status, expiry, assignment and Ed25519 signature. Account status and license status are separate.'],
+['cred',22,130,158,62,'API Credentials','Per-customer account + secret','i','Customer-specific API credentials used by the Customer Portal server-side. Provisioned by the Vendor Portal; rotation supported.'],
+['ins',194,130,158,62,'Install Registry','ID · version · last check-in','i','Registry of installations per customer, updated by check-ins. Owner: Vendor Portal; read by the Cloud API, scoped per customer.'],
+['prv',366,130,158,62,'Provisioning Log','Status · failures · retries','i','Provisioning attempts with explicit failure states and manual retry. Currently best-effort HTTP delivery.'],
+['key',22,204,158,62,'Ed25519 Key (env)','Private key, environment only','i','Private signing key lives only in the Vendor Portal environment. Never in customer-facing services or provisioning payloads.'],
+['ret',194,204,158,62,'Retention Policy','Retention & deletion rules','p','PROPOSED: defined retention and deletion policies per data domain. Not implemented.'],
+['pg',366,204,158,62,'Managed PostgreSQL','Tested backups & recovery','p','PROPOSED: managed production PostgreSQL with backups, restore tests and disaster recovery. Not claimed as deployed.'],
+['tkt',612,52,156,54,'Support Tickets','Organization-scoped','i','Support tickets scoped to one organization. Stored on the Customer Portal side.'],
+['log',776,52,152,54,'Provisioned Login','No self-registration','i','Customer login created by vendor provisioning. Account status is enforced; passwords are changed in the portal.'],
+['live',612,160,156,54,'Live Responses','Customer-scoped, no stale copy','i','Cloud API returns live license status, expiry, plan and installations, always scoped to the calling customer.'],
+['rds',776,160,152,54,'Redis Rate Limits','Shared limits (proposed)','p','PROPOSED: Redis-backed shared rate limiting. Today rate limiting is a per-process local-memory cache.'],
+['inst',612,264,156,42,'Install Identity','ID · version · key','i','Installation ID, agent version and license key sent on check-in.'],
+['pub',776,264,152,42,'Ed25519 Public Key','Verify only','i','Public key used by installations to verify signed licenses. Cannot sign.'],
+['aud',10,326,930,46,'Audit Events — written by every service','Logins · failed logins · license & status changes · provisioning · partner API auth · check-ins · permission denials','i','Audit trail of administrative and security-relevant events across the platform.'],
+['iso',10,386,458,54,'Isolation rule','Every Cloud API query is scoped to one customer identity; cross-customer reads are rejected.','i','Cross-customer isolation: identity mapping via X-Sentinel-Account and customer-specific secret. Verified by isolation checks in the described test run.'],
+['nvr',482,386,458,54,'Never stored in Customer Portal','License / plan / price / expiry data · private signing key · other customers\' data','x','The Customer Portal does not own or locally store authoritative license, plan, price, expiry or installation data, and never receives the private key. License keys are revealed server-side only, not in initial HTML.'],
+['hard',10,452,930,54,'Proposed data hardening','Encryption at rest · tamper-evident audit storage · data-residency options · read replicas · durable queue with idempotency keys · log and metrics pipeline','p','PROPOSED production enhancements. None are claimed as deployed.']];
+const w2=(s,w,x)=>{const m=Math.floor((w-22)/6.9),L=[];let c='';s.split(' ').forEach(t=>{if((c+' '+t).trim().length>m){L.push(c);c=t}else c=(c+' '+t).trim()});L.push(c);return L.map((l,i)=>`<tspan x="${x}" dy="${i?13:0}">${l}</tspan>`).join('')};
+const box=d=>`<g class="dn ${d[7]}" tabindex="0" role="button" data-id="${d[0]}" aria-label="${d[5]}, ${TT[d[7]]}"><title>${d[5]}</title><rect x="${d[1]}" y="${d[2]}" width="${d[3]}" height="${d[4]}" rx="9"/><text x="${d[1]+11}" y="${d[2]+17}" style="font-size:11.5px;font-weight:700">${d[5]}</text><text class="s" style="font-size:11.5px" x="${d[1]+11}" y="${d[2]+32}">${w2(d[6],d[3],d[1]+11)}</text></g>`;
+const L=['Create','Validate','Store','Use','Audit','Retain / Delete'];
+const edge=(c,d,n,x,y)=>`<path class="e ${c}" d="${d}" marker-end="url(#ar2)"/>`+(n?`<g class="bd"><circle cx="${x}" cy="${y}" r="9"/><text x="${x}" y="${y+4}">${n}</text></g>`:'');
+const svg=`<svg viewBox="0 0 960 570" role="group" aria-label="Conceptual data model: data stores grouped by trust boundary with flows and isolation rules"><desc>Vendor Portal owns identity, customers, licenses, credentials, installation registry and provisioning data. Customer Portal holds tickets and logins only. Cloud API serves live customer-scoped data. Installations hold identity and the public key. Audit events come from every service.</desc>
+<defs><marker id="ar2" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0L12 6L0 12z" fill="#e2ebff"/></marker></defs>
+${Z.map(z=>`<rect class="zn" x="${z[1]}" y="${z[2]}" width="${z[3]}" height="${z[4]}" rx="12"/><text x="${z[1]+12}" y="${z[2]+17}" style="font-size:12.5px;font-weight:700;fill:${z[5]}">${z[0]}</text>`).join('')}
+${edge('a','M534 80H600',1,567,80)}${edge('g','M700 112V134',2,700,123)}${edge('g','M534 176H600',3,567,176)}${edge('g','M840 240V218',4,840,229)}${edge('c','M270 312V326')}${edge('c','M770 312V326')}
+${D.map(box).join('')}
+${L.map((l,i)=>{const x=10+i*158,p=i==5;return `<g class="dn ${p?'p':'i'}"><rect x="${x}" y="518" width="140" height="36" rx="18"/><text x="${x+70}" y="541" text-anchor="middle" style="font-size:12.5px;font-weight:700">${l}${p?'*':''}</text></g>`+(i<5?`<text x="${x+149}" y="541" text-anchor="middle" style="font-size:16px">›</text>`:'')}).join('')}
+<text class="s" x="10" y="568">* Retention and deletion policy is proposed. Conceptual data model — not an exact database schema.</text></svg>`;
+const html=`<section id="dd" aria-label="Advanced data architecture" style="margin-top:1.4rem"><p class="k">Advanced data architecture</p><h2 style="font-size:clamp(1.2rem,2.4vw,1.9rem)">Data ownership, flow and isolation</h2><p class="sub">Which service owns which data, how it moves, and where isolation is enforced. Conceptual model; click any store for details.</p>
+<div class="arch"><div class="sv">${svg}</div><aside class="info" id="dinfo" aria-live="polite"><h3>Select a data store</h3>Click or focus a box for its owner, access and status.</aside></div>
+<div class="leg"><span>▭ Solid cyan = implemented</span><span>⬚ Dashed violet = proposed</span><span style="color:#fca5a5">⬚ Dashed red = never stored here</span><span style="color:var(--em)">━ Green = authenticated traffic</span><span style="color:var(--am)">━ Amber = provisioning</span></div>
+<ol class="fl"><li>Vendor provisions login and credentials to the Customer Portal (never the signing key).</li><li>Customer Portal queries the Cloud API with server-side credentials.</li><li>Cloud API reads live license and installation data owned by the Vendor Portal.</li><li>Installations check in; the registry is updated.</li><li>Every service writes audit events.</li></ol></section>`;
+document.querySelector('#s0 .notes').insertAdjacentHTML('beforebegin',html);
+const pick=g=>{document.querySelectorAll('.dn.sel').forEach(x=>x.classList.remove('sel'));g.classList.add('sel');const d=D.find(x=>x[0]==g.dataset.id);document.getElementById('dinfo').innerHTML=`<h3>${d[5]}</h3><b class="tg ${d[7]}">${TT[d[7]]}</b><p>${d[8]}</p>`};
+document.querySelectorAll('#dd .dn[data-id]').forEach(g=>{g.onclick=()=>pick(g);g.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();pick(g)}}});
 })();
 </script></body></html>
