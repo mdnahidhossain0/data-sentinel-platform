@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Sign in — Sentinel Vendor Portal{% endblock %}
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center">
+  <div class="glass rounded-2xl p-8 w-full max-w-sm">
+    <div class="flex items-center gap-2 mb-6">
+      <div class="w-8 h-8 rounded-md bg-accent/15 border border-accent/30 flex items-center justify-center text-accent">◆</div>
+      <span class="font-semibold text-lg text-slate-100">Sentinel Vendor Portal</span>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-4">
+          <label class="block text-xs text-slate-400 mb-1">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
+      {% if form.errors %}<p class="text-red-400 text-sm mb-4">Invalid username or password.</p>{% endif %}
+      <button type="submit" class="w-full bg-accent/90 hover:bg-accent text-ink-950 font-medium rounded-lg py-2 text-sm">Sign in</button>
+    </form>
+  </div>
+</div>
+<style>input { width:100%; background:#12161f; border:1px solid #262c3a; border-radius:0.5rem; padding:0.5rem 0.75rem; color:#e2e8f0; }</style>
+{% endblock %}

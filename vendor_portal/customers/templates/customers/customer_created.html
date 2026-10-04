@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Customer Created{% endblock %}
+{% block content %}
+<div class="glass rounded-xl p-6 max-w-lg glow">
+  <h1 class="text-lg font-semibold text-accent mb-4">Customer created successfully.</h1>
+
+  {% if provisioning_error %}
+    <div class="bg-red-500/10 text-red-300 rounded-lg px-4 py-3 text-sm mb-4">
+      The customer and license were created, but the Customer Portal login could not be provisioned automatically: {{ provisioning_error }}.
+      Use <strong>Retry Portal Sync</strong> or <strong>Reset Portal Password</strong> from the customer page once the Customer Portal is reachable.
+    </div>
+  {% endif %}
+
+  <dl class="grid grid-cols-2 gap-y-3 text-sm">
+    <dt class="text-slate-500">Account</dt><dd class="font-mono text-xs">{{ customer.external_id }}</dd>
+    <dt class="text-slate-500">Email</dt><dd>{{ customer.email }}</dd>
+    <dt class="text-slate-500">Plan</dt><dd>{{ license.plan.name }}</dd>
+    <dt class="text-slate-500">License</dt><dd class="font-mono text-xs break-all">DSK1.********************************</dd>
+    <dt class="text-slate-500">Status</dt><dd class="text-accent">{{ license.status }}</dd>
+    <dt class="text-slate-500">Expires</dt><dd>{{ license.expires_at|date:"M j, Y" }}</dd>
+  </dl>
+
+  {% if not provisioning_error %}
+    <div class="mt-4 bg-ink-800 rounded-lg p-4">
+      <div class="text-xs text-slate-500 mb-1">Temporary Customer Portal password (shown once — relay it securely)</div>
+      <code class="text-accent text-sm">{{ temp_password }}</code>
+    </div>
+  {% endif %}
+
+  <a href="{% url 'customers:detail' customer.pk %}" class="inline-block mt-6 bg-white/5 hover:bg-white/10 rounded-lg px-4 py-2 text-sm">View Customer →</a>
+</div>
+{% endblock %}

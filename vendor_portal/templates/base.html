@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Sentinel Vendor Portal{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ink: { 950: '#07090d', 900: '#0c0f16', 800: '#12161f', 700: '#1b202c', 600: '#262c3a' },
+            accent: { DEFAULT: '#5eead4', dim: '#0f766e' },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { background: #07090d; }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.06); }
+    .glow { box-shadow: 0 0 0 1px rgba(94,234,212,0.15), 0 0 24px rgba(94,234,212,0.06); }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #262c3a; border-radius: 999px; }
+  </style>
+</head>
+<body class="bg-ink-950 text-slate-200 antialiased min-h-screen flex">
+  {% if user.is_authenticated %}
+  <aside class="w-60 shrink-0 border-r border-white/5 bg-ink-900/60 min-h-screen p-4 hidden md:flex flex-col gap-1">
+    <div class="flex items-center gap-2 px-2 py-3 mb-2">
+      <div class="w-7 h-7 rounded-md bg-accent/15 border border-accent/30 flex items-center justify-center text-accent text-sm">◆</div>
+      <span class="font-semibold tracking-wide text-slate-100">Sentinel</span>
+    </div>
+    {% url 'dashboard:home' as u1 %}{% url 'customers:list' as u2 %}{% url 'licenses:list' as u3 %}
+    {% url 'plans:list' as u5 %}{% url 'installations:list' as u6 %}{% url 'audit:list' as u7 %}
+    <a href="{{ u1 }}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 {% if request.resolver_match.app_name == 'dashboard' %}bg-white/5 text-accent{% endif %}">Dashboard</a>
+    <a href="{{ u2 }}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 {% if request.resolver_match.app_name == 'customers' %}bg-white/5 text-accent{% endif %}">Customers</a>
+    <a href="{{ u3 }}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 {% if request.resolver_match.app_name == 'licenses' %}bg-white/5 text-accent{% endif %}">Licenses</a>
+    <a href="{{ u5 }}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 {% if request.resolver_match.app_name == 'plans' %}bg-white/5 text-accent{% endif %}">Plans</a>
+    <a href="{{ u6 }}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 {% if request.resolver_match.app_name == 'installations' %}bg-white/5 text-accent{% endif %}">Installations</a>
+    <a href="{{ u7 }}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 {% if request.resolver_match.app_name == 'audit' %}bg-white/5 text-accent{% endif %}">Audit Logs</a>
+    {% if user.can_manage_admins %}
+      <a href="{% url 'accounts:admin_user_list' %}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 {% if request.resolver_match.url_name == 'admin_user_list' %}bg-white/5 text-accent{% endif %}">Admin Users</a>
+    {% endif %}
+    <div class="mt-auto pt-4 border-t border-white/5 text-xs text-slate-500 px-2">
+      Signed in as<br><span class="text-slate-300">{{ user.username }}</span> · {{ user.get_role_display }}
+    </div>
+    <a href="{% url 'accounts:logout' %}" class="px-3 py-2 rounded-lg text-sm hover:bg-white/5 text-slate-400">Log out</a>
+  </aside>
+  {% endif %}
+
+  <div class="flex-1 min-w-0">
+    {% if user.is_authenticated %}
+    <header class="border-b border-white/5 px-6 py-3 flex items-center justify-between">
+      <div class="text-sm text-slate-400">{% block breadcrumb %}{% endblock %}</div>
+      <div class="flex items-center gap-3 text-sm">
+        <span class="w-2 h-2 rounded-full bg-accent"></span>
+        <span class="text-slate-400">{{ user.email|default:user.username }}</span>
+      </div>
+    </header>
+    {% endif %}
+
+    <main class="p-6 max-w-6xl mx-auto">
+      {% if messages %}
+        <div class="space-y-2 mb-6">
+          {% for message in messages %}
+            <div class="glass rounded-lg px-4 py-3 text-sm {% if message.tags == 'error' %}text-red-300 border-red-500/30{% else %}text-accent{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

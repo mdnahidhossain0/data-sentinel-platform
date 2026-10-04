@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Admin Users{% endblock %}
+{% block breadcrumb %}Admin Users{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-lg font-semibold text-slate-100">Admin Users</h1>
+  <a href="{% url 'accounts:admin_user_create' %}" class="bg-accent/90 hover:bg-accent text-ink-950 text-sm font-medium rounded-lg px-4 py-2">New Admin User</a>
+</div>
+<div class="glass rounded-xl overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-xs uppercase border-b border-white/5">
+      <tr><th class="text-left px-4 py-3">Username</th><th class="text-left px-4 py-3">Role</th><th class="text-left px-4 py-3">Status</th><th class="px-4 py-3"></th></tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr class="border-b border-white/5">
+        <td class="px-4 py-3">{{ u.username }}<div class="text-slate-500 text-xs">{{ u.email }}</div></td>
+        <td class="px-4 py-3">{{ u.get_role_display }}</td>
+        <td class="px-4 py-3">{% if u.is_active %}<span class="text-accent">Active</span>{% else %}<span class="text-slate-500">Disabled</span>{% endif %}</td>
+        <td class="px-4 py-3 text-right">
+          <form method="post" action="{% url 'accounts:admin_user_toggle_active' u.pk %}">{% csrf_token %}
+            <button class="text-slate-400 hover:text-accent">{% if u.is_active %}Disable{% else %}Enable{% endif %}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

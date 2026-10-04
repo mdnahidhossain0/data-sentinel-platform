@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Sentinel{% endblock %}
+{% block content %}
+<h1 class="text-xl font-semibold text-white mb-1">{{ organization.name }}</h1>
+<p class="text-sm text-slate-500 mb-6">Sentinel account overview</p>
+
+{% if error == "not_linked" %}
+  <div class="card rounded-2xl p-8 text-center">
+    <p class="text-slate-300">Your account isn't fully provisioned yet. Please contact your vendor.</p>
+  </div>
+{% elif error == "unauthorized" %}
+  <div class="card rounded-2xl p-8 text-center text-red-400">Something's wrong with your account's credentials. Please contact your vendor.</div>
+{% elif error == "unavailable" %}
+  <div class="card rounded-2xl p-8 text-center text-slate-300">Couldn't reach the license server right now. Your data will show as soon as it's back.</div>
+{% elif not license %}
+  <div class="card rounded-2xl p-8 text-center text-slate-300">No active license has been assigned to your account. Please contact your vendor.</div>
+{% else %}
+
+  {% if license and days_remaining is not None and days_remaining <= 7 and license.status == "ACTIVE" %}
+    <div class="bg-amber-500/10 text-amber-300 rounded-xl px-4 py-3 text-sm mb-6">
+      Your license expires in {{ days_remaining }} day{{ days_remaining|pluralize }}. Contact your vendor to renew.
+    </div>
+  {% endif %}
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="card rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase">Plan</div>
+      <div class="text-lg font-semibold text-white mt-1">{% if license %}{{ license.plan_name }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="card rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase">License Status</div>
+      <div class="text-lg font-semibold mt-1 {% if license.status == 'ACTIVE' %}text-emerald-400{% else %}text-amber-400{% endif %}">{% if license %}{{ license.status }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="card rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase">Days Remaining</div>
+      <div class="text-lg font-semibold text-white mt-1">{% if days_remaining is not None %}{{ days_remaining }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="card rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase">Installations</div>
+      <div class="text-lg font-semibold text-white mt-1">{{ online_count|default:0 }} <span class="text-sm text-slate-500">/ {{ installations|length }} online</span></div>
+    </div>
+  </div>
+
+  <div class="flex gap-3">
+    <a href="{% url 'licenses:detail' %}" class="text-brand-500 text-sm">View License →</a>
+    <a href="{% url 'installations:list' %}" class="text-brand-500 text-sm">View Installations →</a>
+  </div>
+{% endif %}
+{% endblock %}

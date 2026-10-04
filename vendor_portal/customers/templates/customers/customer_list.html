@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block breadcrumb %}Customers{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-lg font-semibold text-slate-100">Customers</h1>
+  <a href="{% url 'customers:create' %}" class="bg-accent/90 hover:bg-accent text-ink-950 text-sm font-medium rounded-lg px-4 py-2">New Customer</a>
+</div>
+<form method="get" class="flex gap-2 mb-4">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search company or email..." class="bg-ink-800 border border-white/10 rounded-lg px-3 py-2 text-sm flex-1">
+  <select name="status" class="bg-ink-800 border border-white/10 rounded-lg px-3 py-2 text-sm">
+    <option value="">All statuses</option>
+    {% for value, label in status_choices %}<option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <button class="bg-white/5 hover:bg-white/10 rounded-lg px-4 py-2 text-sm">Filter</button>
+</form>
+<div class="glass rounded-xl overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-xs uppercase border-b border-white/5">
+      <tr><th class="text-left px-4 py-3">Company</th><th class="text-left px-4 py-3">Email</th><th class="text-left px-4 py-3">Status</th><th class="text-left px-4 py-3">Current License</th></tr>
+    </thead>
+    <tbody>
+      {% for customer in page %}
+      <tr class="border-b border-white/5 hover:bg-white/5">
+        <td class="px-4 py-3"><a class="hover:text-accent" href="{% url 'customers:detail' customer.pk %}">{{ customer.company_name }}</a></td>
+        <td class="px-4 py-3 text-slate-400">{{ customer.email }}</td>
+        <td class="px-4 py-3">
+          {% if customer.status == "ACTIVE" %}<span class="text-accent">Active</span>
+          {% elif customer.status == "SUSPENDED" %}<span class="text-amber-300">Suspended</span>
+          {% else %}<span class="text-slate-500">Archived</span>{% endif %}
+        </td>
+        <td class="px-4 py-3 text-slate-400">{% if customer.current_license %}{{ customer.current_license.plan.name }}{% else %}—{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500">No customers yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page.has_other_pages %}
+<div class="flex gap-2 mt-4 text-sm">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}&q={{ q }}&status={{ status }}" class="text-accent">Previous</a>{% endif %}
+  <span class="text-slate-500">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}&q={{ q }}&status={{ status }}" class="text-accent">Next</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Sentinel Vendor Portal{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="glass rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">Customers</div>
+      <div class="text-2xl font-semibold text-slate-100 mt-1">{{ total_customers }}</div>
+    </div>
+    <div class="glass rounded-xl p-4 glow">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">Active Licenses</div>
+      <div class="text-2xl font-semibold text-accent mt-1">{{ active_license_count }}</div>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">Expired</div>
+      <div class="text-2xl font-semibold text-amber-300 mt-1">{{ expired_license_count }}</div>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">Revoked</div>
+      <div class="text-2xl font-semibold text-red-400 mt-1">{{ revoked_license_count }}</div>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">Expiring in 7 Days</div>
+      <div class="text-2xl font-semibold text-slate-100 mt-1">{{ expiring_soon_count }}</div>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">MRR</div>
+      <div class="text-2xl font-semibold text-slate-100 mt-1">${{ mrr }}</div>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">Yearly Revenue Booked</div>
+      <div class="text-2xl font-semibold text-slate-100 mt-1">${{ yearly_revenue }}</div>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-xs text-slate-500 uppercase tracking-wide">Installations</div>
+      <div class="text-2xl font-semibold text-slate-100 mt-1">{{ active_installation_count }} <span class="text-sm text-slate-500">online</span></div>
+      <div class="text-xs text-slate-500">{{ offline_installation_count }} offline</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <div class="glass rounded-xl p-4">
+      <div class="text-sm text-slate-400 mb-3">License Status Breakdown</div>
+      <canvas id="statusChart" height="180"></canvas>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-sm text-slate-400 mb-3">Activations — Last 30 Days</div>
+      <canvas id="activationChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="glass rounded-xl p-4">
+      <div class="text-sm text-slate-400 mb-3">Recent Activations</div>
+      <ul class="space-y-2 text-sm">
+        {% for license in recent_activations %}
+          <li class="flex justify-between"><a class="hover:text-accent" href="{% url 'licenses:detail' license.pk %}">{{ license.customer.company_name }}</a><span class="text-slate-500">{{ license.created_at|date:"M j" }}</span></li>
+        {% empty %}<li class="text-slate-500">None yet.</li>{% endfor %}
+      </ul>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-sm text-slate-400 mb-3">Recent Revocations</div>
+      <ul class="space-y-2 text-sm">
+        {% for license in recent_revocations %}
+          <li class="flex justify-between"><a class="hover:text-accent" href="{% url 'licenses:detail' license.pk %}">{{ license.customer.company_name }}</a><span class="text-slate-500">{{ license.updated_at|date:"M j" }}</span></li>
+        {% empty %}<li class="text-slate-500">None yet.</li>{% endfor %}
+      </ul>
+    </div>
+    <div class="glass rounded-xl p-4">
+      <div class="text-sm text-slate-400 mb-3">Recent Check-ins</div>
+      <ul class="space-y-2 text-sm">
+        {% for installation in recent_checkins %}
+          <li class="flex justify-between"><a class="hover:text-accent" href="{% url 'installations:detail' installation.pk %}">{{ installation.customer.company_name }}</a><span class="text-slate-500">{{ installation.last_check_in|date:"M j, H:i" }}</span></li>
+        {% empty %}<li class="text-slate-500">None yet.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script>
+    const statusData = {{ status_breakdown_json|safe }};
+    const activationData = {{ activation_series_json|safe }};
+
+    new Chart(document.getElementById('statusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(statusData),
+        datasets: [{ data: Object.values(statusData), backgroundColor: ['#5eead4', '#fbbf24', '#f87171', '#94a3b8', '#64748b'], borderWidth: 0 }],
+      },
+      options: { plugins: { legend: { labels: { color: '#cbd5e1' } } } },
+    });
+
+    new Chart(document.getElementById('activationChart'), {
+      type: 'line',
+      data: {
+        labels: activationData.map(p => p.date.slice(5)),
+        datasets: [{ label: 'Activations', data: activationData.map(p => p.count), borderColor: '#5eead4', backgroundColor: 'rgba(94,234,212,0.15)', fill: true, tension: 0.3 }],
+      },
+      options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' }, beginAtZero: true } } },
+    });
+  </script>
+{% endblock %}

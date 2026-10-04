@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Installations{% endblock %}
+{% block breadcrumb %}Installations{% endblock %}
+{% block content %}
+<h1 class="text-lg font-semibold text-slate-100 mb-4">Installations</h1>
+<form method="get" class="flex gap-2 mb-4">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by customer..." class="bg-ink-800 border border-white/10 rounded-lg px-3 py-2 text-sm flex-1">
+  <button class="bg-white/5 hover:bg-white/10 rounded-lg px-4 py-2 text-sm">Filter</button>
+</form>
+<div class="glass rounded-xl overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-xs uppercase border-b border-white/5">
+      <tr><th class="text-left px-4 py-3">Customer</th><th class="text-left px-4 py-3">Installation ID</th><th class="text-left px-4 py-3">Agent</th><th class="text-left px-4 py-3">Last Check-in</th><th class="text-left px-4 py-3">Status</th></tr>
+    </thead>
+    <tbody>
+      {% for installation in page %}
+      <tr class="border-b border-white/5 hover:bg-white/5">
+        <td class="px-4 py-3"><a class="hover:text-accent" href="{% url 'customers:detail' installation.customer.pk %}">{{ installation.customer.company_name }}</a></td>
+        <td class="px-4 py-3"><a class="text-accent" href="{% url 'installations:detail' installation.pk %}">{{ installation.installation_id }}</a></td>
+        <td class="px-4 py-3 text-slate-400">{{ installation.agent_version }}</td>
+        <td class="px-4 py-3 text-slate-400">{{ installation.last_check_in|date:"M j, H:i"|default:"Never" }}</td>
+        <td class="px-4 py-3">
+          {% if installation.status == "ONLINE" %}<span class="text-accent">Online</span>
+          {% elif installation.status == "OFFLINE" %}<span class="text-slate-500">Offline</span>
+          {% elif installation.status == "REVOKED" %}<span class="text-red-400">Revoked</span>
+          {% else %}<span class="text-amber-300">{{ installation.status }}</span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">No installations yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page.has_other_pages %}
+<div class="flex gap-2 mt-4 text-sm">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}&q={{ q }}" class="text-accent">Previous</a>{% endif %}
+  <span class="text-slate-500">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}&q={{ q }}" class="text-accent">Next</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

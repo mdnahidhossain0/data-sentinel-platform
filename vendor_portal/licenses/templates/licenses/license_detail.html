@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}License #{{ license.pk }}{% endblock %}
+{% block breadcrumb %}Licenses / #{{ license.pk }}{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-lg font-semibold text-slate-100">{{ license.customer.company_name }} — {{ license.plan.name }}</h1>
+  <span class="text-sm px-3 py-1 rounded-full glass">{{ license.effective_status }}</span>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+  <div class="glass rounded-xl p-4 lg:col-span-2">
+    <dl class="grid grid-cols-2 gap-y-2 text-sm">
+      <dt class="text-slate-500">Customer</dt><dd><a class="text-accent" href="{% url 'customers:detail' license.customer.pk %}">{{ license.customer.company_name }}</a></dd>
+      <dt class="text-slate-500">Plan</dt><dd>{{ license.plan.name }}</dd>
+      <dt class="text-slate-500">Issue Date</dt><dd>{{ license.issue_date|date:"M j, Y H:i" }}</dd>
+      <dt class="text-slate-500">Start Date</dt><dd>{{ license.start_date|date:"M j, Y" }}</dd>
+      <dt class="text-slate-500">Expires</dt><dd>{{ license.expires_at|date:"M j, Y" }}</dd>
+      <dt class="text-slate-500">Agent Version</dt><dd>{{ license.agent_version|default:"—" }}</dd>
+      <dt class="text-slate-500">Last Check-in</dt><dd>{{ license.last_check_in|date:"M j, Y H:i"|default:"Never" }}</dd>
+      <dt class="text-slate-500">Created By</dt><dd>{{ license.created_by|default:"—" }}</dd>
+      {% if license.revocation_reason %}<dt class="text-slate-500">Revocation Reason</dt><dd>{{ license.get_revocation_reason_display }}</dd>{% endif %}
+    </dl>
+    <div class="mt-4">
+      <div class="text-xs text-slate-500 mb-1">License Key</div>
+      <code class="block bg-ink-800 rounded-lg p-3 text-xs break-all">{{ license.license_key }}</code>
+      <div class="flex gap-3 mt-2 text-sm">
+        <button onclick="navigator.clipboard.writeText('{{ license.license_key }}')" class="text-accent">Copy</button>
+        <a href="{% url 'licenses:download' license.pk %}" class="text-accent">Download</a>
+      </div>
+    </div>
+  </div>
+  <div class="glass rounded-xl p-4">
+    <div class="text-sm text-slate-400 mb-3">Actions</div>
+    <div class="flex flex-col gap-2 text-sm">
+      {% if license.effective_status == "ACTIVE" %}
+        <form method="post" action="{% url 'licenses:suspend' license.pk %}"><button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-amber-300">Suspend</button></form>
+      {% elif license.effective_status == "SUSPENDED" %}
+        <form method="post" action="{% url 'licenses:reactivate' license.pk %}"><button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-accent">Reactivate</button></form>
+      {% endif %}
+      <a href="{% url 'licenses:extend' license.pk %}" class="text-center w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2">Extend Expiry</a>
+      <a href="{% url 'licenses:change_plan' license.pk %}" class="text-center w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2">Change Plan</a>
+      <form method="post" action="{% url 'licenses:regenerate' license.pk %}" onsubmit="return confirm('Issue a new key and revoke this one?');"><button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2">Regenerate</button></form>
+      {% if license.effective_status != "REVOKED" %}
+        <a href="{% url 'licenses:revoke' license.pk %}" class="text-center w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg px-3 py-2">Revoke</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="glass rounded-xl p-4">
+  <div class="text-sm text-slate-400 mb-3">Installations on this License</div>
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-xs uppercase border-b border-white/5"><tr><th class="text-left py-2">Installation</th><th class="text-left py-2">Agent</th><th class="text-left py-2">Last Check-in</th><th class="text-left py-2">Status</th></tr></thead>
+    <tbody>
+      {% for installation in license.installations.all %}
+      <tr class="border-b border-white/5"><td class="py-2"><a class="text-accent" href="{% url 'installations:detail' installation.pk %}">{{ installation.installation_id }}</a></td><td class="py-2">{{ installation.agent_version }}</td><td class="py-2">{{ installation.last_check_in|date:"M j, H:i"|default:"Never" }}</td><td class="py-2">{{ installation.status }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="py-4 text-center text-slate-500">No check-ins yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

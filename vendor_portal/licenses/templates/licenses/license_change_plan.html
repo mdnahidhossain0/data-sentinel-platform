@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Change Plan{% endblock %}
+{% block content %}
+<div class="glass rounded-xl p-6 max-w-md">
+  <h1 class="text-lg font-semibold text-slate-100 mb-1">Change Plan</h1>
+  <p class="text-sm text-slate-400 mb-4">Current plan: {{ license.plan.name }}</p>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-4">
+        <label class="block text-xs text-slate-400 mb-1">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="bg-accent/90 hover:bg-accent text-ink-950 font-medium rounded-lg px-4 py-2 text-sm">Change Plan</button>
+  </form>
+</div>
+<style>select { width:100%; background:#12161f; border:1px solid #262c3a; border-radius:0.5rem; padding:0.5rem 0.75rem; color:#e2e8f0; }</style>
+{% endblock %}

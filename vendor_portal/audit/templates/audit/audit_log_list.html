@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs{% endblock %}
+{% block breadcrumb %}Audit Logs{% endblock %}
+{% block content %}
+<h1 class="text-lg font-semibold text-slate-100 mb-4">Audit Logs</h1>
+<form method="get" class="flex gap-2 mb-4">
+  <input type="text" name="action" value="{{ action }}" placeholder="Filter by action..." class="bg-ink-800 border border-white/10 rounded-lg px-3 py-2 text-sm flex-1">
+  <input type="text" name="q" value="{{ q }}" placeholder="Filter by target..." class="bg-ink-800 border border-white/10 rounded-lg px-3 py-2 text-sm flex-1">
+  <button class="bg-white/5 hover:bg-white/10 rounded-lg px-4 py-2 text-sm">Filter</button>
+</form>
+<div class="glass rounded-xl overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-xs uppercase border-b border-white/5">
+      <tr><th class="text-left px-4 py-3">Time</th><th class="text-left px-4 py-3">Actor</th><th class="text-left px-4 py-3">Action</th><th class="text-left px-4 py-3">Target</th><th class="text-left px-4 py-3">IP</th></tr>
+    </thead>
+    <tbody>
+      {% for event in page %}
+      <tr class="border-b border-white/5">
+        <td class="px-4 py-3 text-slate-400">{{ event.timestamp|date:"M j, H:i:s" }}</td>
+        <td class="px-4 py-3">{{ event.actor|default:"system" }}</td>
+        <td class="px-4 py-3">{{ event.action }}</td>
+        <td class="px-4 py-3 text-slate-400">{{ event.target_type }} {{ event.target_id }}</td>
+        <td class="px-4 py-3 text-slate-500">{{ event.ip_address|default:"—" }}</td>
+      </tr>
+      {% empty %}<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">No events yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page.has_other_pages %}
+<div class="flex gap-2 mt-4 text-sm">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}&action={{ action }}&q={{ q }}" class="text-accent">Previous</a>{% endif %}
+  <span class="text-slate-500">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}&action={{ action }}&q={{ q }}" class="text-accent">Next</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

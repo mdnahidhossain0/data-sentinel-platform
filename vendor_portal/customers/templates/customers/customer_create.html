@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Add Customer{% endblock %}
+{% block content %}
+<div class="glass rounded-xl p-6 max-w-2xl">
+  <h1 class="text-lg font-semibold text-slate-100 mb-1">Add Customer</h1>
+  <p class="text-sm text-slate-500 mb-4">Creates the customer record, a license, and their Customer Portal login in one step. The Vendor Portal is the only place a customer account can be created.</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="grid grid-cols-2 gap-4">
+      {% for field in form %}
+        <div class="mb-2 {% if field.name == 'notes' %}col-span-2{% endif %}">
+          <label class="block text-xs text-slate-400 mb-1">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="text-slate-500 text-xs mt-1">{{ field.help_text }}</p>{% endif %}
+          {% for error in field.errors %}<p class="text-red-400 text-xs mt-1">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="mt-4 bg-accent/90 hover:bg-accent text-ink-950 font-medium rounded-lg px-4 py-2 text-sm">Create Customer</button>
+  </form>
+</div>
+<style>input, select, textarea { width:100%; background:#12161f; border:1px solid #262c3a; border-radius:0.5rem; padding:0.5rem 0.75rem; color:#e2e8f0; }</style>
+{% endblock %}

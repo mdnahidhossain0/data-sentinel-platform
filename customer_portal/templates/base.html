@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Sentinel{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { brand: { 50:'#eff6ff', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8' } } } } }
+  </script>
+  <style>
+    body { background: #0f172a; }
+    .card { background: #1e293b; border: 1px solid #334155; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-200 antialiased min-h-screen">
+  <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="{% url 'dashboard:home' %}" class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-md bg-brand-600 flex items-center justify-center text-white text-sm font-bold">S</div>
+        <span class="font-semibold text-slate-100">Sentinel</span>
+      </a>
+      {% if user.is_authenticated %}
+      <div class="flex items-center gap-5 text-sm">
+        <a href="{% url 'dashboard:home' %}" class="text-slate-300 hover:text-white">Dashboard</a>
+        <a href="{% url 'licenses:detail' %}" class="text-slate-300 hover:text-white">My License</a>
+        <a href="{% url 'installations:list' %}" class="text-slate-300 hover:text-white">Installations</a>
+        <a href="{% url 'support:list' %}" class="text-slate-300 hover:text-white">Support</a>
+        <a href="{% url 'insights:list' %}" class="text-slate-300 hover:text-white">Insights</a>
+        <div class="relative group">
+          <button class="text-slate-300 hover:text-white">Account ▾</button>
+          <div class="absolute right-0 mt-2 w-48 card rounded-lg shadow-lg hidden group-hover:block py-1">
+            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">Profile</a>
+            <a href="{% url 'accounts:organization_settings' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">Company Info</a>
+            <a href="{% url 'accounts:security' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">Security</a>
+            <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm hover:bg-slate-700 border-t border-slate-700">Log out</a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="flex items-center gap-3 text-sm">
+        <a href="{% url 'accounts:login' %}" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg">Log in</a>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-6 py-8">
+    {% if messages %}
+      <div class="space-y-2 mb-6">
+        {% for message in messages %}
+          <div class="card rounded-lg px-4 py-3 text-sm {% if message.tags == 'error' %}text-red-300 border-red-800{% else %}text-brand-500{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

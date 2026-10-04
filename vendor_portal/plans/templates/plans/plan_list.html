@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Plans{% endblock %}
+{% block breadcrumb %}Plans{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-lg font-semibold text-slate-100">Plans</h1>
+  <a href="{% url 'plans:create' %}" class="bg-accent/90 hover:bg-accent text-ink-950 text-sm font-medium rounded-lg px-4 py-2">New Plan</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  {% for plan in plans %}
+  <div class="glass rounded-xl p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="font-semibold text-slate-100">{{ plan.name }}</span>
+      {% if plan.is_active %}<span class="text-xs text-accent">Active</span>{% else %}<span class="text-xs text-slate-500">Inactive</span>{% endif %}
+    </div>
+    <div class="text-2xl font-semibold text-slate-100">${{ plan.price_usd }}<span class="text-sm text-slate-500"> / {{ plan.billing_interval }}</span></div>
+    <div class="text-xs text-slate-500 mt-1">Code: {{ plan.code }} · {{ plan.duration_days }} days · max {{ plan.max_installations }} installs</div>
+    <div class="flex gap-2 mt-4">
+      <a href="{% url 'plans:edit' plan.pk %}" class="text-sm text-accent">Edit</a>
+      <form method="post" action="{% url 'plans:toggle' plan.pk %}"><button class="text-sm text-slate-400">{% if plan.is_active %}Deactivate{% else %}Activate{% endif %}</button></form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

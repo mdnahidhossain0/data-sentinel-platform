@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Revoke License{% endblock %}
+{% block content %}
+<div class="glass rounded-xl p-6 max-w-lg">
+  <h1 class="text-lg font-semibold text-slate-100 mb-1">Revoke License</h1>
+  <p class="text-sm text-slate-400 mb-4">{{ license.customer.company_name }} — {{ license.plan.name }}. This takes effect on the customer's next cloud check-in.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-4">
+        <label class="block text-xs text-slate-400 mb-1">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-300 font-medium rounded-lg px-4 py-2 text-sm">Confirm Revocation</button>
+  </form>
+</div>
+<style>select, textarea { width:100%; background:#12161f; border:1px solid #262c3a; border-radius:0.5rem; padding:0.5rem 0.75rem; color:#e2e8f0; }</style>
+{% endblock %}

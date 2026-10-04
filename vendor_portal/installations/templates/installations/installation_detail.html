@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Installation {{ installation.installation_id }}{% endblock %}
+{% block content %}
+<h1 class="text-lg font-semibold text-slate-100 mb-4">Installation {{ installation.installation_id }}</h1>
+<div class="glass rounded-xl p-4 max-w-xl">
+  <dl class="grid grid-cols-2 gap-y-2 text-sm">
+    <dt class="text-slate-500">Customer</dt><dd><a class="text-accent" href="{% url 'customers:detail' installation.customer.pk %}">{{ installation.customer.company_name }}</a></dd>
+    <dt class="text-slate-500">License</dt><dd>{% if installation.license %}<a class="text-accent" href="{% url 'licenses:detail' installation.license.pk %}">#{{ installation.license.pk }}</a>{% else %}—{% endif %}</dd>
+    <dt class="text-slate-500">Agent Version</dt><dd>{{ installation.agent_version|default:"—" }}</dd>
+    <dt class="text-slate-500">Operating System</dt><dd>{{ installation.operating_system|default:"—" }}</dd>
+    <dt class="text-slate-500">IP Address</dt><dd>{{ installation.ip_address|default:"—" }}</dd>
+    <dt class="text-slate-500">First Seen</dt><dd>{{ installation.first_seen|date:"M j, Y H:i" }}</dd>
+    <dt class="text-slate-500">Last Check-in</dt><dd>{{ installation.last_check_in|date:"M j, Y H:i"|default:"Never" }}</dd>
+    <dt class="text-slate-500">Status</dt><dd>{{ installation.status }}</dd>
+  </dl>
+</div>
+{% endblock %}

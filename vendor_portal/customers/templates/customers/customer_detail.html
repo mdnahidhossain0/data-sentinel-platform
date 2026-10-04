@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.company_name }}{% endblock %}
+{% block breadcrumb %}Customers / {{ customer.company_name }}{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-lg font-semibold text-slate-100">{{ customer.company_name }}</h1>
+  <div class="flex gap-2">
+    <a href="{% url 'customers:edit' customer.pk %}" class="bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Edit</a>
+    <a href="{% url 'licenses:generate' %}" class="bg-accent/90 hover:bg-accent text-ink-950 rounded-lg px-3 py-2 text-sm font-medium">Generate License</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+  <div class="glass rounded-xl p-4 lg:col-span-2">
+    <div class="text-sm text-slate-400 mb-2">Customer Information</div>
+    <dl class="grid grid-cols-2 gap-y-2 text-sm">
+      <dt class="text-slate-500">Contact</dt><dd>{{ customer.contact_person|default:"—" }}</dd>
+      <dt class="text-slate-500">Email</dt><dd>{{ customer.email }}</dd>
+      <dt class="text-slate-500">Phone</dt><dd>{{ customer.phone|default:"—" }}</dd>
+      <dt class="text-slate-500">Country</dt><dd>{{ customer.country|default:"—" }}</dd>
+      <dt class="text-slate-500">Organization Type</dt><dd>{{ customer.organization_type|default:"—" }}</dd>
+      <dt class="text-slate-500">Status</dt><dd>{{ customer.status }}</dd>
+      <dt class="text-slate-500">Notes</dt><dd>{{ customer.notes|default:"—" }}</dd>
+    </dl>
+  </div>
+  <div class="glass rounded-xl p-4">
+    <div class="text-sm text-slate-400 mb-2">Account Actions</div>
+    <div class="flex flex-col gap-2">
+      {% if customer.status == "ACTIVE" %}
+      <form method="post" action="{% url 'customers:suspend' customer.pk %}">{% csrf_token %}<button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm text-amber-300">Suspend Account</button></form>
+      {% else %}
+      <form method="post" action="{% url 'customers:reactivate' customer.pk %}">{% csrf_token %}<button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm text-accent">Reactivate</button></form>
+      {% endif %}
+      <a href="{% url 'customers:api_secret' customer.pk %}" class="w-full text-center bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Portal API Credentials</a>
+      <a href="{% url 'customers:reset_portal_password' customer.pk %}" class="w-full text-center bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Reset Portal Password</a>
+      <form method="post" action="{% url 'customers:retry_portal_sync' customer.pk %}"><button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Retry Portal Sync</button></form>
+      <form method="post" action="{% url 'customers:archive' customer.pk %}" onsubmit="return confirm('Archive this customer?');">{% csrf_token %}<button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm text-red-400">Archive</button></form>
+    </div>
+    <div class="text-xs text-slate-500 mt-3">External ID: <code>{{ customer.external_id }}</code></div>
+  </div>
+</div>
+
+<div class="glass rounded-xl p-4 mb-6">
+  <div class="text-sm text-slate-400 mb-3">Licenses</div>
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-xs uppercase border-b border-white/5"><tr><th class="text-left py-2">Plan</th><th class="text-left py-2">Status</th><th class="text-left py-2">Expires</th><th></th></tr></thead>
+    <tbody>
+      {% for license in licenses %}
+      <tr class="border-b border-white/5"><td class="py-2">{{ license.plan.name }}</td><td class="py-2">{{ license.effective_status }}</td><td class="py-2">{{ license.expires_at|date:"M j, Y" }}</td><td class="py-2 text-right"><a class="text-accent" href="{% url 'licenses:detail' license.pk %}">View →</a></td></tr>
+      {% empty %}<tr><td colspan="4" class="py-4 text-center text-slate-500">No licenses issued yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="glass rounded-xl p-4">
+  <div class="text-sm text-slate-400 mb-3">Installations</div>
+  <table class="w-full text-sm">
+    <thead class="text-slate-500 text-xs uppercase border-b border-white/5"><tr><th class="text-left py-2">Installation</th><th class="text-left py-2">Agent</th><th class="text-left py-2">Last Check-in</th><th class="text-left py-2">Status</th></tr></thead>
+    <tbody>
+      {% for installation in installations %}
+      <tr class="border-b border-white/5"><td class="py-2"><a class="text-accent" href="{% url 'installations:detail' installation.pk %}">{{ installation.installation_id }}</a></td><td class="py-2">{{ installation.agent_version }}</td><td class="py-2">{{ installation.last_check_in|date:"M j, H:i"|default:"Never" }}</td><td class="py-2">{{ installation.status }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="py-4 text-center text-slate-500">No installations yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

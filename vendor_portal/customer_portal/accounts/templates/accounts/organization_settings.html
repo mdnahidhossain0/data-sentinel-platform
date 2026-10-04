@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Company Info — Sentinel{% endblock %}
+{% block content %}
+<h1 class="text-xl font-semibold text-white mb-6">Company Info</h1>
+<div class="max-w-md card rounded-2xl p-8">
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-4">
+        <label class="block text-xs text-slate-400 mb-1">{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg py-2 text-sm">Save</button>
+  </form>
+  <p class="text-xs text-slate-500 mt-4">
+    {% if organization.is_linked %}Provisioned Sentinel account: <code>{{ organization.external_id }}</code>.
+    {% else %}Your account isn't fully provisioned yet. Please contact your vendor.{% endif %}
+  </p>
+</div>
+<style>input, select { width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.5rem; padding:0.5rem 0.75rem; color:#e2e8f0; }</style>
+{% endblock %}
