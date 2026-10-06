@@ -1,8 +1,0 @@
-Django>=5.0,<6.0
-python-dotenv>=1.0,<2.0
-requests>=2.31,<3.0
-gunicorn>=22.0,<23.0
-whitenoise>=6.6,<7.0
-
-# Only needed if DB_ENGINE=postgresql or INSIGHTS_DB_ENGINE=postgresql in .env
-# psycopg2-binary>=2.9,<3.0
