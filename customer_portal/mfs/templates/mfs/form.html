@@ -1,1 +1,51 @@
-{% extends "base.html" %}{% block content %}<h1 class="text-2xl font-semibold text-white mb-6">{{ title }}</h1><form method="post" class="card rounded-xl p-6 max-w-2xl space-y-4">{% csrf_token %}{{ form.as_p }}<button class="bg-brand-600 px-4 py-2 rounded-lg">{{ submit }}</button></form>{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ title }} — Data Sentinel AI{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="mb-6">
+    <p class="text-xs font-medium uppercase tracking-[0.22em] text-brand-500">Secure connectivity</p>
+    <h1 class="mt-2 text-2xl font-semibold text-white">{{ title }}</h1>
+  </div>
+
+  <form method="post" class="card rounded-2xl p-6 md:p-8 space-y-6">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-200">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="grid md:grid-cols-2 gap-5">
+      {% for field in form %}
+        <div class="space-y-2 {% if field.name == 'password' or field.name == 'ssl_required' %}md:col-span-2{% endif %}">
+          <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-200">{{ field.label }}</label>
+
+          {% if field.name == 'ssl_required' %}
+            <label class="flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-200">
+              {{ field }}
+              <span>Require SSL/TLS</span>
+            </label>
+          {% else %}
+            {{ field }}
+          {% endif %}
+
+          {% if field.help_text %}
+            <p class="text-xs text-slate-500">{{ field.help_text }}</p>
+          {% endif %}
+
+          {% for error in field.errors %}
+            <p class="text-xs text-red-300">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="flex items-center justify-end gap-3 border-t border-slate-800 pt-5">
+      <a href="{% url 'mfs:data_sources' %}" class="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800">Cancel</a>
+      <button type="submit" class="bg-brand-600 hover:bg-brand-500 text-white font-medium px-5 py-2.5 rounded-lg shadow-lg shadow-brand-600/20 transition">{{ submit }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

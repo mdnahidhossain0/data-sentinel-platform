@@ -11,6 +11,39 @@
   <style>
     body { background: #0f172a; }
     .card { background: #1e293b; border: 1px solid #334155; }
+    input:not([type='checkbox']):not([type='radio']), select, textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 0.75rem;
+      padding: 0.7rem 0.8rem;
+      color: #e2e8f0;
+      box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    input::placeholder,
+    textarea::placeholder { color: rgba(148, 163, 184, 0.8); }
+    input:not([type='checkbox']):not([type='radio']):focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(96, 165, 250, 0.9);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+    }
+    input[type='checkbox'], input[type='radio'] {
+      accent-color: #3b82f6;
+    }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5.5 7.5L10 12l4.5-4.5' stroke='%23cbd5e1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.8rem center;
+      background-size: 1rem;
+      padding-right: 2.4rem;
+    }
+    button, [type="submit"], [type="button"] {
+      transition: all 0.15s ease;
+    }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-200 antialiased min-h-screen">
