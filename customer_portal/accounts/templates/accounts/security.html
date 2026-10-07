@@ -9,7 +9,7 @@
   </div>
   <div class="flex justify-between items-center text-sm border-t border-slate-700 pt-4">
     <span class="text-slate-300">Active sessions: {{ active_sessions }}</span>
-    <form method="post" action="{% url 'accounts:logout_other_sessions' %}"><button class="text-brand-500">Log out other sessions</button></form>
+    <form method="post" action="{% url 'accounts:logout_other_sessions' %}">{% csrf_token %}<button class="text-brand-500">Log out other sessions</button></form>
   </div>
 </div>
 {% endblock %}

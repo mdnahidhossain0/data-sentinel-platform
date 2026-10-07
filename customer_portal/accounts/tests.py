@@ -1,7 +1,8 @@
 import json
+import re
 from unittest.mock import patch
 
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 
 from support.models import SupportTicket
 
@@ -19,6 +20,36 @@ class AuthenticationTests(TestCase):
     def test_login_succeeds_with_correct_credentials(self):
         ok = self.client.login(username="jordan@acme.example", password="correct-horse-battery12")
         self.assertTrue(ok)
+
+    def test_account_menu_uses_persistent_click_disclosure(self):
+        self.client.force_login(self.user)
+        response = self.client.get("/")
+
+        self.assertContains(response, '<details class="relative">', html=False)
+        self.assertContains(response, "<summary", html=False)
+        self.assertContains(response, "Log out", html=False)
+
+    def test_login_form_submits_with_csrf_enforcement(self):
+        self.user.set_password("correct-password")
+        self.user.save()
+        client = Client(enforce_csrf_checks=True)
+        response = client.get("/accounts/login/")
+        self.assertEqual(response.status_code, 200)
+        token = re.search(
+            rb'name="csrfmiddlewaretoken" value="([^"]+)"',
+            response.content,
+        ).group(1).decode()
+
+        response = client.post(
+            "/accounts/login/",
+            {
+                "username": "jordan@acme.example",
+                "password": "correct-password",
+                "csrfmiddlewaretoken": token,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
 
     def test_login_fails_with_wrong_password(self):
         ok = self.client.login(username="jordan@acme.example", password="wrong-password")

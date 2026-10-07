@@ -17,7 +17,7 @@
     <div class="text-xs text-slate-500 mt-1">Code: {{ plan.code }} · {{ plan.duration_days }} days · max {{ plan.max_installations }} installs</div>
     <div class="flex gap-2 mt-4">
       <a href="{% url 'plans:edit' plan.pk %}" class="text-sm text-accent">Edit</a>
-      <form method="post" action="{% url 'plans:toggle' plan.pk %}"><button class="text-sm text-slate-400">{% if plan.is_active %}Deactivate{% else %}Activate{% endif %}</button></form>
+      <form method="post" action="{% url 'plans:toggle' plan.pk %}">{% csrf_token %}<button class="text-sm text-slate-400">{% if plan.is_active %}Deactivate{% else %}Activate{% endif %}</button></form>
     </div>
   </div>
   {% endfor %}

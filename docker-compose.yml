@@ -88,6 +88,7 @@ services:
       DB_PASSWORD: ${VENDOR_DB_PASSWORD:?Set VENDOR_DB_PASSWORD in .env}
       CUSTOMER_PORTAL_URL: http://customer-web:8000
       VENDOR_PROVISIONING_KEY: ${VENDOR_PROVISIONING_KEY:?Set VENDOR_PROVISIONING_KEY in .env}
+      DJANGO_ALLOWED_HOSTS: ${VENDOR_ALLOWED_HOSTS:-localhost,127.0.0.1,vendor-web}
     depends_on: {vendor-db: {condition: service_healthy}}
     ports: ["8001:8000"]
     command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"

@@ -49,7 +49,17 @@ class SentinelCloudClient:
                 if response.status_code == 429:
                     time.sleep(min(2**attempt, 5))
                     continue
-                response.raise_for_status()
+                try:
+                    response.raise_for_status()
+                except requests.HTTPError as error:
+                    logger.error(
+                        "Sentinel Cloud API returned HTTP %s for %s",
+                        response.status_code,
+                        url,
+                    )
+                    raise SentinelCloudUnavailable(
+                        f"Sentinel Cloud returned HTTP {response.status_code}."
+                    ) from error
                 return response.json()
 
             if attempt < self.max_retries:

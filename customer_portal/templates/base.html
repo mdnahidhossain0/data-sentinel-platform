@@ -29,9 +29,9 @@
         <a href="{% url 'mfs:reviews' %}" class="text-slate-300 hover:text-white">Review</a>
         <a href="{% url 'mfs:data_sources' %}" class="text-slate-300 hover:text-white">Data</a>
         <a href="{% url 'mfs:assistant' %}" class="text-slate-300 hover:text-white">AI Assistant</a>
-        <div class="relative group">
-          <button class="text-slate-300 hover:text-white">Account ▾</button>
-          <div class="absolute right-0 mt-2 w-48 card rounded-lg shadow-lg hidden group-hover:block py-1">
+        <details class="relative">
+          <summary class="list-none cursor-pointer text-slate-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500">Account ▾</summary>
+          <div class="absolute right-0 mt-2 w-48 card rounded-lg shadow-lg py-1 z-20">
             <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">Profile</a>
             <a href="{% url 'accounts:organization_settings' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">Company Info</a>
             <a href="{% url 'accounts:security' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">Security</a>
@@ -40,7 +40,7 @@
             <a href="{% url 'dashboard:home' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">License & Account</a>
             <a href="{% url 'support:list' %}" class="block px-4 py-2 text-sm hover:bg-slate-700">Support</a>
             <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm hover:bg-slate-700 border-t border-slate-700">Log out</a>
-          </div>
+          </details>
         </div>
       </div>
       {% else %}

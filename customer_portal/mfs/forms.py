@@ -18,4 +18,15 @@ class ReviewDecisionForm(forms.ModelForm):
 
 
 class AssistantForm(forms.Form):
-    question = forms.CharField(max_length=1000, widget=forms.Textarea(attrs={"rows": 3}))
+    question = forms.CharField(
+        max_length=1000,
+        widget=forms.Textarea(attrs={
+            "rows": 3,
+            "class": (
+                "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 "
+                "text-sm text-slate-100 placeholder-slate-500 shadow-sm "
+                "focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+            ),
+            "placeholder": "Ask about recent high-risk transactions, merchants, or a transaction ID.",
+        }),
+    )

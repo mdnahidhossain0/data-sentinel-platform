@@ -33,7 +33,7 @@
       {% endif %}
       <a href="{% url 'customers:api_secret' customer.pk %}" class="w-full text-center bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Portal API Credentials</a>
       <a href="{% url 'customers:reset_portal_password' customer.pk %}" class="w-full text-center bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Reset Portal Password</a>
-      <form method="post" action="{% url 'customers:retry_portal_sync' customer.pk %}"><button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Retry Portal Sync</button></form>
+      <form method="post" action="{% url 'customers:retry_portal_sync' customer.pk %}">{% csrf_token %}<button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm">Retry Portal Sync</button></form>
       <form method="post" action="{% url 'customers:archive' customer.pk %}" onsubmit="return confirm('Archive this customer?');">{% csrf_token %}<button class="w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 text-sm text-red-400">Archive</button></form>
     </div>
     <div class="text-xs text-slate-500 mt-3">External ID: <code>{{ customer.external_id }}</code></div>

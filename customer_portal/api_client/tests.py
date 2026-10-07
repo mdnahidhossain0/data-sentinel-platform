@@ -31,6 +31,15 @@ class SentinelCloudClientTests(TestCase):
             self.client.get_partner_status()
 
     @patch("api_client.client.requests.get")
+    def test_unexpected_http_error_raises_unavailable(self, mock_get):
+        response = Mock(status_code=400)
+        response.raise_for_status.side_effect = requests.HTTPError("Bad Request")
+        mock_get.return_value = response
+
+        with self.assertRaisesRegex(SentinelCloudUnavailable, "HTTP 400"):
+            self.client.get_partner_status()
+
+    @patch("api_client.client.requests.get")
     def test_timeout_retries_then_raises_unavailable(self, mock_get):
         mock_get.side_effect = requests.Timeout("timed out")
         with self.assertRaises(SentinelCloudUnavailable):

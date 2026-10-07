@@ -12,6 +12,7 @@ from django.utils import timezone
 from accounts.models import CustomerUser, Organization
 from mfs.assistant import answer_question
 from mfs.connectors import discover_schema, encrypt_password
+from mfs.forms import AssistantForm
 from mfs.ml import train_model
 from mfs.kpis import calculate_business_kpis, create_business_kpi_snapshot
 from mfs.models import DataSource, FraudAlert, IngestionAPIKey, ReviewCase, ReviewDecision, RiskAssessment, TransactionEvent
@@ -136,6 +137,13 @@ class ConnectorTests(TestCase):
 
 
 class AssistantSecurityTests(TestCase):
+    def test_assistant_question_textarea_uses_dark_theme(self):
+        widget = AssistantForm().fields["question"].widget
+
+        self.assertIn("bg-slate-950", widget.attrs["class"])
+        self.assertIn("text-slate-100", widget.attrs["class"])
+        self.assertEqual(widget.attrs["rows"], 3)
+
     def test_unapproved_llm_tool_is_rejected(self):
         org = Organization.objects.create(name="AI Org")
         user = CustomerUser.objects.create_user(username="ai@example.com", password="strong-password-1", organization=org,
