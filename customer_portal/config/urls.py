@@ -19,4 +19,6 @@ urlpatterns = [
     path("installations/", include("installations.urls")),
     path("support/", include("support.urls")),
     path("insights/", include("insights.urls")),
+    path("mfs/", include("mfs.urls")),
+    path("api/v1/", include("mfs.api_urls")),
 ]

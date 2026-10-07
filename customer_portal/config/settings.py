@@ -36,11 +36,13 @@ INSTALLED_APPS = [
     "installations",
     "support",
     "insights",
+    "mfs",
     "dashboard",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "mfs.middleware.CorrelationIdMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -84,6 +86,8 @@ if DB_ENGINE == "postgresql":
             "PASSWORD": os.environ.get("DB_PASSWORD", ""),
             "HOST": os.environ.get("DB_HOST", "localhost"),
             "PORT": os.environ.get("DB_PORT", "5432"),
+            "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", "60")),
+            "CONN_HEALTH_CHECKS": True,
         }
     }
 else:
@@ -113,7 +117,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "dashboard:home"
+LOGIN_REDIRECT_URL = "mfs:dashboard"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
 SESSION_COOKIE_HTTPONLY = True
@@ -172,6 +176,35 @@ INSIGHTS_DB_USER = os.environ.get("INSIGHTS_DB_USER", "postgres")
 INSIGHTS_DB_PASSWORD = os.environ.get("INSIGHTS_DB_PASSWORD", "")
 INSIGHTS_WINDOW_DAYS = int(os.environ.get("INSIGHTS_WINDOW_DAYS", "90"))
 LOGIN_RATE_LIMIT_PER_MINUTE = int(os.environ.get("LOGIN_RATE_LIMIT_PER_MINUTE", "10"))
+
+# Data Sentinel AI: streaming, model, connector, and local LLM settings.
+KAFKA_BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_CLIENT_ID = os.environ.get("KAFKA_CLIENT_ID", "data-sentinel-customer")
+KAFKA_CONSUMER_GROUP = os.environ.get("KAFKA_CONSUMER_GROUP", "data-sentinel-risk-v1")
+KAFKA_TOPIC_TRANSACTIONS = os.environ.get("KAFKA_TOPIC_TRANSACTIONS", "mfs.transactions")
+KAFKA_TOPIC_RISK = os.environ.get("KAFKA_TOPIC_RISK", "mfs.transaction.risk")
+KAFKA_TOPIC_ALERTS = os.environ.get("KAFKA_TOPIC_ALERTS", "mfs.transaction.alerts")
+KAFKA_TOPIC_REVIEW = os.environ.get("KAFKA_TOPIC_REVIEW", "mfs.review.events")
+KAFKA_TOPIC_SCHEMA = os.environ.get("KAFKA_TOPIC_SCHEMA", "mfs.schema.events")
+KAFKA_TOPIC_DATA_QUALITY = os.environ.get("KAFKA_TOPIC_DATA_QUALITY", "mfs.data-quality.events")
+KAFKA_TOPIC_DLQ = os.environ.get("KAFKA_TOPIC_DLQ", "mfs.dead-letter")
+KAFKA_SECURITY_PROTOCOL = os.environ.get("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+KAFKA_SASL_MECHANISM = os.environ.get("KAFKA_SASL_MECHANISM", "PLAIN")
+KAFKA_SASL_USERNAME = os.environ.get("KAFKA_SASL_USERNAME", "")
+KAFKA_SASL_PASSWORD = os.environ.get("KAFKA_SASL_PASSWORD", "")
+DATA_SOURCE_ENCRYPTION_KEY = os.environ.get("DATA_SOURCE_ENCRYPTION_KEY", "")
+MODEL_ARTIFACT_DIR = os.environ.get("MODEL_ARTIFACT_DIR", str(BASE_DIR / "model_artifacts"))
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:1.5b")
+OLLAMA_TIMEOUT_SECONDS = float(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "30"))
+MFS_HIGH_RISK_THRESHOLD = int(os.environ.get("MFS_HIGH_RISK_THRESHOLD", "70"))
+MFS_MEDIUM_RISK_THRESHOLD = int(os.environ.get("MFS_MEDIUM_RISK_THRESHOLD", "40"))
+MFS_RETENTION_DAYS = int(os.environ.get("MFS_RETENTION_DAYS", "365"))
+MFS_API_RATE_LIMIT_PER_MINUTE = int(os.environ.get("MFS_API_RATE_LIMIT_PER_MINUTE", "600"))
+
+REDIS_URL = os.environ.get("REDIS_URL", "")
+if REDIS_URL:
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": REDIS_URL}}
 
 LOGGING = {
     "version": 1,

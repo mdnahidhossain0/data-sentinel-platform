@@ -1,5 +1,7 @@
 # Sentinel Customer Portal
 
+> The primary product is now **Data Sentinel AI — Secure MFS Transaction Intelligence & Risk Platform**. This file retains the legacy account/licensing guide; see the repository [root documentation](../README.md) for MFS architecture, Kafka, Airflow, ML, schema discovery, local LLM, security, and the end-to-end demo.
+
 The public, customer-facing portal for Data Sentinel customers. **There is no self-registration.** A customer can only log in with an account that Vendor Portal staff created and provisioned. The Vendor Portal is the sole source of truth for customers, organizations, plans, licenses, license status/expiry, installations, API credentials and provisioning; this project is only the customer-facing window onto an already-provisioned customer.
 
 This is an independent Django project. It never touches the Vendor Portal's database and never imports its models — all license data arrives over HTTPS from the Vendor's Cloud API.

@@ -1,0 +1,236 @@
+name: data-sentinel-ai
+
+x-customer-env: &customer-env
+  DB_ENGINE: postgresql
+  DB_HOST: customer-db
+  DB_PORT: 5432
+  DB_NAME: sentinel_customer_portal
+  DB_USER: postgres
+  DB_PASSWORD: ${CUSTOMER_DB_PASSWORD:?Set CUSTOMER_DB_PASSWORD in .env}
+  SENTINEL_CLOUD_URL: http://vendor-web:8000
+  VENDOR_PROVISIONING_KEY: ${VENDOR_PROVISIONING_KEY:?Set VENDOR_PROVISIONING_KEY in .env}
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  DATA_SOURCE_ENCRYPTION_KEY: ${DATA_SOURCE_ENCRYPTION_KEY:?Set DATA_SOURCE_ENCRYPTION_KEY in .env}
+  MODEL_ARTIFACT_DIR: /app/model_artifacts
+  OLLAMA_BASE_URL: http://ollama:11434
+  OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:1.5b}
+  REDIS_URL: redis://redis:6379/1
+  DB_CONN_MAX_AGE: ${DB_CONN_MAX_AGE:-60}
+  MFS_API_RATE_LIMIT_PER_MINUTE: ${MFS_API_RATE_LIMIT_PER_MINUTE:-10000}
+  LOADTEST_ADMIN_PASSWORD: ${LOADTEST_ADMIN_PASSWORD:?Set LOADTEST_ADMIN_PASSWORD in .env}
+  DJANGO_ALLOWED_HOSTS: ${CUSTOMER_ALLOWED_HOSTS:-localhost,127.0.0.1,gateway,customer-web}
+  DJANGO_CSRF_TRUSTED_ORIGINS: ${CUSTOMER_CSRF_TRUSTED_ORIGINS:-http://localhost:8000}
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: airflow/Dockerfile
+  environment:
+    <<: *customer-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:${AIRFLOW_DB_PASSWORD:?Set AIRFLOW_DB_PASSWORD in .env}@airflow-db/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_WEBSERVER_SECRET_KEY:?Set AIRFLOW_WEBSERVER_SECRET_KEY in .env}
+    AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:?Set AIRFLOW_ADMIN_PASSWORD in .env}
+    PYTHONPATH: /opt/data-sentinel/customer_portal
+    MODEL_ARTIFACT_DIR: /opt/data-sentinel/customer_portal/model_artifacts
+  volumes:
+    - .:/opt/data-sentinel
+    - model_artifacts:/opt/data-sentinel/customer_portal/model_artifacts
+    - airflow_logs:/opt/airflow/logs
+  depends_on:
+    airflow-db: {condition: service_healthy}
+    customer-db: {condition: service_healthy}
+    kafka: {condition: service_healthy}
+
+services:
+  vendor-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sentinel_vendor
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${VENDOR_DB_PASSWORD:?Set VENDOR_DB_PASSWORD in .env}
+    volumes: [vendor_db_data:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d sentinel_vendor"], interval: 5s, timeout: 3s, retries: 20}
+
+  customer-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sentinel_customer_portal
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${CUSTOMER_DB_PASSWORD:?Set CUSTOMER_DB_PASSWORD in .env}
+    expose: ["5432"]
+    volumes: [customer_db_data:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d sentinel_customer_portal"], interval: 5s, timeout: 3s, retries: 20}
+
+  mfs-source-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: mfs_source
+      POSTGRES_USER: mfs_reader
+      POSTGRES_PASSWORD: ${MFS_SOURCE_PASSWORD:?Set MFS_SOURCE_PASSWORD in .env}
+    expose: ["5432"]
+    volumes:
+      - mfs_source_data:/var/lib/postgresql/data
+      - ./scripts/mfs_source_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U mfs_reader -d mfs_source"], interval: 5s, timeout: 3s, retries: 20}
+
+  vendor-web:
+    build: ./vendor_portal
+    env_file: ./vendor_portal/.env
+    environment:
+      DB_ENGINE: postgresql
+      DB_HOST: vendor-db
+      DB_PORT: 5432
+      DB_NAME: sentinel_vendor
+      DB_USER: postgres
+      DB_PASSWORD: ${VENDOR_DB_PASSWORD:?Set VENDOR_DB_PASSWORD in .env}
+      CUSTOMER_PORTAL_URL: http://customer-web:8000
+      VENDOR_PROVISIONING_KEY: ${VENDOR_PROVISIONING_KEY:?Set VENDOR_PROVISIONING_KEY in .env}
+    depends_on: {vendor-db: {condition: service_healthy}}
+    ports: ["8001:8000"]
+    command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+
+  customer-web:
+    build: ./customer_portal
+    env_file: ./customer_portal/.env
+    environment: *customer-env
+    depends_on:
+      customer-migrate: {condition: service_completed_successfully}
+      customer-db: {condition: service_healthy}
+      kafka: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+      vendor-web: {condition: service_started}
+      redis: {condition: service_healthy}
+    expose: ["8000"]
+    volumes: [model_artifacts:/app/model_artifacts]
+    restart: unless-stopped
+    command: sh -c "gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers $${WEB_CONCURRENCY:-3} --threads $${GUNICORN_THREADS:-2} --timeout $${GUNICORN_TIMEOUT:-60} --max-requests 2000 --max-requests-jitter 200"
+    healthcheck: {test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/', timeout=3)\""], interval: 10s, timeout: 5s, retries: 20}
+
+  customer-migrate:
+    build: ./customer_portal
+    environment: *customer-env
+    depends_on: {customer-db: {condition: service_healthy}}
+    volumes: [model_artifacts:/app/model_artifacts]
+    command: python manage.py migrate --noinput
+
+  gateway:
+    image: nginx:1.27-alpine
+    depends_on: {customer-web: {condition: service_healthy}}
+    ports: ["8000:8000"]
+    volumes: [./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro]
+    restart: unless-stopped
+    healthcheck: {test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/healthz/ >/dev/null"], interval: 10s, timeout: 5s, retries: 20}
+
+  risk-worker:
+    build: ./customer_portal
+    environment: *customer-env
+    depends_on:
+      customer-migrate: {condition: service_completed_successfully}
+      customer-db: {condition: service_healthy}
+      kafka: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+    volumes: [model_artifacts:/app/model_artifacts]
+    restart: unless-stopped
+    command: python manage.py consume_mfs_events
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes: [redis_data:/data]
+    healthcheck: {test: ["CMD", "redis-cli", "ping"], interval: 5s, timeout: 3s, retries: 20}
+
+  kafka:
+    image: apache/kafka:3.9.1
+    ports: ["29092:29092"]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes: [kafka_data:/var/lib/kafka/data]
+    healthcheck: {test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"], interval: 10s, timeout: 5s, retries: 20}
+
+  kafka-init:
+    image: apache/kafka:3.9.1
+    depends_on: {kafka: {condition: service_healthy}}
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        for topic in mfs.transactions mfs.transaction.risk mfs.transaction.alerts mfs.review.events mfs.schema.events mfs.data-quality.events mfs.dead-letter; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$$topic" --partitions 3 --replication-factor 1
+        done
+
+  airflow-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD:?Set AIRFLOW_DB_PASSWORD in .env}
+    volumes: [airflow_db_data:/var/lib/postgresql/data]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U postgres -d airflow"], interval: 5s, timeout: 3s, retries: 20}
+
+  airflow-init:
+    <<: *airflow-common
+    command: bash -c "airflow db migrate && (airflow users create --username admin --password \"$${AIRFLOW_ADMIN_PASSWORD:?AIRFLOW_ADMIN_PASSWORD is required}\" --firstname Data --lastname Sentinel --role Admin --email admin@example.com || airflow users reset-password --username admin --password \"$$AIRFLOW_ADMIN_PASSWORD\")"
+
+  airflow-webserver:
+    <<: *airflow-common
+    depends_on: {airflow-init: {condition: service_completed_successfully}}
+    ports: ["8080:8080"]
+    command: airflow webserver
+    restart: unless-stopped
+    healthcheck: {test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health >/dev/null"], interval: 15s, timeout: 5s, retries: 20}
+
+  airflow-scheduler:
+    <<: *airflow-common
+    depends_on: {airflow-init: {condition: service_completed_successfully}}
+    command: airflow scheduler
+    restart: unless-stopped
+    healthcheck: {test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --hostname \"$$HOSTNAME\""], interval: 30s, timeout: 10s, retries: 10}
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["llm"]
+    ports: ["11434:11434"]
+    volumes: [ollama_data:/root/.ollama]
+
+  ollama-init:
+    image: curlimages/curl:8.11.1
+    profiles: ["llm"]
+    depends_on: [ollama]
+    command: ["sh", "-c", "until curl -sf http://ollama:11434/api/tags; do sleep 2; done; curl -sf http://ollama:11434/api/pull -d '{\"name\":\"${OLLAMA_MODEL:-qwen2.5:1.5b}\",\"stream\":false}'"]
+
+  load-tester:
+    build:
+      context: .
+      dockerfile: loadtest/Dockerfile
+    profiles: ["loadtest"]
+    depends_on: {gateway: {condition: service_healthy}}
+    environment:
+      MFS_API_KEY: ${MFS_API_KEY:-}
+    volumes: [./artifacts/loadtest:/results]
+    command: ["--headless", "--host=http://gateway:8000", "--users", "${LOADTEST_USERS:-20}", "--spawn-rate", "${LOADTEST_SPAWN_RATE:-5}", "--run-time", "${LOADTEST_DURATION:-60s}", "--csv=/results/mfs", "--html=/results/report.html", "--only-summary"]
+
+volumes:
+  vendor_db_data:
+  customer_db_data:
+  mfs_source_data:
+  kafka_data:
+  airflow_db_data:
+  airflow_logs:
+  model_artifacts:
+  ollama_data:
+  redis_data:

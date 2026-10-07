@@ -24,8 +24,19 @@ class Organization(models.Model):
 
 
 class CustomerUser(AbstractUser):
+    ROLE_ORG_ADMIN = "ORG_ADMIN"
+    ROLE_RISK_ANALYST = "RISK_ANALYST"
+    ROLE_REVIEWER = "REVIEWER"
+    ROLE_VIEWER = "VIEWER"
+    ROLE_CHOICES = [
+        (ROLE_ORG_ADMIN, "Organization Admin"),
+        (ROLE_RISK_ANALYST, "Risk Analyst"),
+        (ROLE_REVIEWER, "Reviewer"),
+        (ROLE_VIEWER, "Viewer"),
+    ]
     organization = models.ForeignKey(
         Organization, null=True, blank=True, on_delete=models.CASCADE, related_name="members"
     )
     is_org_owner = models.BooleanField(default=False)
     phone = models.CharField(max_length=50, blank=True, default="")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_VIEWER)

@@ -10,3 +10,6 @@ db.sqlite3-journal
 media/
 staticfiles/
 .DS_Store
+model_artifacts/
+*.joblib
+artifacts/loadtest/report.html

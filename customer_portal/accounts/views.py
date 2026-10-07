@@ -148,6 +148,7 @@ def provision_account(request):
             password=payload["password"],
             organization=organization,
             is_org_owner=True,
+            role=CustomerUser.ROLE_ORG_ADMIN,
             is_active=is_active,
         )
     else:
@@ -160,7 +161,8 @@ def provision_account(request):
                     {"error": "organization exists with no login yet - email and password are required"}, status=400
                 )
             user = CustomerUser.objects.create_user(
-                username=email, email=email, password=password, organization=organization, is_org_owner=True
+                username=email, email=email, password=password, organization=organization, is_org_owner=True,
+                role=CustomerUser.ROLE_ORG_ADMIN,
             )
         else:
             if payload.get("email"):
